@@ -50,6 +50,11 @@ namespace Tetris {
 		void enableAI();
 
 		Piece realCurrentPiece;
+
+		bool isB2bReady = false;
+		int ren = 0;
+
+		float lineClearDelayTimer = 0;
 	private:
 		Board *enemy = nullptr;
 
@@ -60,13 +65,9 @@ namespace Tetris {
 
 		int garbage = 0;
 
-		bool isB2bReady = false;
-		int ren = 0;
-
 		int numberOfPieceTakenFromBag = 0;
 		int holdCounter = 0;
 		float inGameTimer = 0;
-		float lineClearDelayTimer = 0;
 
 		std::array<int, 8> g_per_dist = { 1, 1, 2, 2, 3, 4, 4, 4 };
 

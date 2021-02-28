@@ -12,7 +12,7 @@ namespace AI {
 
 		std::unordered_map<char, std::vector<std::string>> path;
 
-		void expand(Node* _node);
+		void expand(std::shared_ptr<Node> _node);
 	private:
 	};
 };

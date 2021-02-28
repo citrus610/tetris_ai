@@ -7,13 +7,27 @@
 #include <vector>
 
 #include "Bot_Piece.h"
+#include "Node.h"
 
 namespace AI {
 	class Bot_Board
 	{
 	public:
+		Bot_Piece piece;
+
+		void attempt(std::string _path, std::shared_ptr<Node> _node);
+		void setState(std::array<std::array<int, 10>, 40> _board_data, char _current, char _hold, std::vector<char> _next, bool _b2b, int _ren);
+
+		std::array<std::array<int, 10>, 40> data;
+		char current = ' ';
+		char hold = ' ';
+		std::vector<char> next;
+		bool b2b = false;
+		int ren = 0;
+
 		static std::string encodeData(std::array<std::array<int, 10>, 40> board_data);
 		static std::array<std::array <int, 10>, 40> decodeData(std::string code);
+		static std::array<std::array <int, 10>, 40> normalize(std::array<std::array<int, 10>, 40> board_data);
 
 		static std::array<std::array <int, 10>, 40> placePiece(Bot_Piece _piece ,std::array<std::array <int, 10>, 40> _board_data);
 		static std::vector<int> fullRowList(std::array<std::array <int, 10>, 40> _board_data);

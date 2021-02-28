@@ -3,89 +3,38 @@
 AI::Generator::Generator()
 {
 	this->path['O'] = {
-		"LLLLH",
-		"LLLH",
-		"LLH",
-		"LH",
 		"H",
+		"LH",
 		"RH",
+		"LLH",
 		"RRH",
+		"LLLH",
 		"RRRH",
 		"RRRRH",
-
-		"LLLLSRH",
-		"LLLSRH",
-		"LLSRH",
-		"LSRH",
-		"SRH",
-		"RSRH",
-		"RRSRH",
-		"RRRSRH",
-
-		"LLLSLH",
-		"LLSLH",
-		"LSLH",
-		"SLH",
-		"RSLH",
-		"RRSLH",
-		"RRRSLH",
-		"RRRRSLH"
+		"LLLLH",
 	};
 	this->path['I'] = {
-		"LLLH",
-		"LLH",
-		"LH",
 		"H",
+		"LH",
 		"RH",
+		"LLH",
 		"RRH",
+		"LLLH",
 		"RRRH",
 
-		"XLLLLLH",
-		"XLLLLH",
-		"XLLLH",
-		"XLLH",
-		"XLH",
 		"XH",
+		"XLH",
 		"XRH",
+		"XLLH",
 		"XRRH",
+		"XLLLH",
 		"XRRRH",
+		"XLLLLH",
 		"XRRRRH",
-
-		"LLLSRH",
-		"LLSRH",
-		"LSRH",
-		"SRH",
-		"RSRH",
-		"RRSRH",
-
-		"LLSLH",
-		"LSLH",
-		"SLH",
-		"RSLH",
-		"RRSLH",
-		"RRRSLH",
-
-		"XLLLLLSRH",
-		"XLLLLSRH",
-		"XLLLSRH",
-		"XLLSRH",
-		"XLSRH",
-		"XSRH",
-		"XRSRH",
-		"XRRSRH",
-		"XRRRSRH",
-
-		"XLLLLSLH",
-		"XLLLSLH",
-		"XLLSLH",
-		"XLSLH",
-		"XSLH",
-		"XRSLH",
-		"XRRSLH",
-		"XRRRSLH",
-		"XRRRRSLH",
+		"XLLLLLH",
 	};
-	this->path['T'] = {
+	/*
+	this->path['L'] = {
 		// hard drop only
 		"LLLH",
 		"LLH",
@@ -314,8 +263,69 @@ AI::Generator::Generator()
 	this->path['J'] = this->path['T'];
 	this->path['L'] = this->path['T'];
 	this->path['S'] = this->path['T'];
-	this->path['Z'] = this->path['T'];
+	this->path['Z'] = this->path['T'];*/
+	this->path['L'] = {
+		"H",
+		"LH",
+		"RH",
+		"LLH",
+		"RRH",
+		"LLLH",
+		"RRRH",
+		"RRRRH",
 
+		"XH",
+		"XLH",
+		"XRH",
+		"XLLH",
+		"XRRH",
+		"XLLLH",
+		"XRRRH",
+		"XLLLLH",
+		"XRRRRH",
+
+		"XXH",
+		"XXLH",
+		"XXRH",
+		"XXLLH",
+		"XXRRH",
+		"XXLLLH",
+		"XXRRRH",
+		"XXRRRRH",
+
+		"ZH",
+		"ZLH",
+		"ZRH",
+		"ZLLH",
+		"ZRRH",
+		"ZLLLH",
+		"ZRRRH",
+		"ZRRRRH",
+		"ZRRRRRH"
+	};
+	this->path['J'] = this->path['L'];
+	this->path['Z'] = {
+		"H",
+		"LH",
+		"RH",
+		"LLH",
+		"RRH",
+		"LLLH",
+		"RRRH",
+		"RRRRH",
+
+		"XH",
+		"XLH",
+		"XRH",
+		"XLLH",
+		"XRRH",
+		"XLLLH",
+		"XRRRH",
+		"XLLLLH",
+		"XRRRRH",
+	};
+	this->path['S'] = this->path['Z'];
+	this->path['T'] = this->path['L'];
 }
 
 /*
@@ -333,9 +343,9 @@ The expand function: create children from the current node state
 Maybe this is the most expensive and unsafe function
 
 NOTE TO SELF: TO DETERMINE A MOVE THAT RESULT IN AN ALREADY EXIST BOARD STATE, COMPARE PIECE X, Y, AND ROTATION
-*/
+//
 
-void AI::Generator::expand(Node* _node)
+void AI::Generator::expand(std::shared_ptr<Node> _node)
 {
 	if (_node->current == ' ')
 		return;
@@ -394,7 +404,7 @@ void AI::Generator::expand(Node* _node)
 	piece_data_storage.clear();
 	if (_node->hold == ' ') {
 		// if there is no hold piece and next piece, then ignore
-		if (_node->next.length() < 1) { }
+		if (_node->next.size() < 1) { }
 		else {
 			// if there is no hold piece, then the bot_piece will be the next piece
 			uncertain_paths = this->path[_node->next[0]];
@@ -480,7 +490,7 @@ void AI::Generator::expand(Node* _node)
 	// after having all possible paths, we then create node's children
 	// WARNING: creating children can cause memory leak without caution
 	for (int i = 0; i < (int)possible_paths.size(); i++) {
-		Node* child = new Node;
+		std::shared_ptr<Node> child = std::make_shared<Node>();
 		child->path = possible_paths[i];
 		child->parent = _node;
 		_node->children.push_back(child);
@@ -488,7 +498,7 @@ void AI::Generator::expand(Node* _node)
 			if (_node->hold == ' ') { // if there is no hold piece
 				bot_piece.setType(_node->next[0]);
 				child->hold = _node->current;
-				if (_node->next.length() < 2) { // if there is only 1 next piece then the child is unexpandable
+				if (_node->next.size() < 2) { // if there is only 1 next piece then the child is unexpandable
 					child->unexpandable = true;
 					child->current = ' ';
 				}
@@ -501,7 +511,7 @@ void AI::Generator::expand(Node* _node)
 			else { // if there is hold piece
 				bot_piece.setType(_node->hold);
 				child->hold = _node->current;
-				if (_node->next.length() < 1) { // if there is no next piece then the child is unexpandable
+				if (_node->next.size() < 1) { // if there is no next piece then the child is unexpandable
 					child->unexpandable = true;
 					child->current = ' ';
 				}
@@ -515,7 +525,7 @@ void AI::Generator::expand(Node* _node)
 		else {
 			bot_piece.setType(_node->current);
 			child->hold = _node->hold;
-			if (_node->next.length() < 1) { // if there is no next piece then the child is unexpandable
+			if (_node->next.size() < 1) { // if there is no next piece then the child is unexpandable
 				child->unexpandable = true;
 				child->current = ' ';
 			}
@@ -526,6 +536,7 @@ void AI::Generator::expand(Node* _node)
 			}
 		}
 
+		/*
 		// simulate move to get board data, ren, b2b, lines sent, lines cleared, etc...
 		std::string the_path = possible_paths[i];
 		if (the_path[0] == 'C')
@@ -583,3 +594,649 @@ void AI::Generator::expand(Node* _node)
 		}
 	}
 }
+*/
+void AI::Generator::expand(std::shared_ptr<Node> _node) {
+	if (_node->current == ' ') {
+		std::cout << "can't expand because no current \n";
+		return;
+	}
+
+	// check current piece
+	for (int i = 0; i < (int)this->path[_node->current].size(); i++) {
+		std::shared_ptr<Node> child = std::make_shared<Node>();
+		child->parent = _node;
+		_node->children.push_back(child);
+		if (_node->next.size() < 1) { 
+			child->unexpandable = true; 
+		}
+		child->path = this->path[_node->current][i];
+	}
+	if (_node->current == 'T') { // check for tspin
+		for (int i = 0; i < (int)_node->just_struct_tsd.size(); i++) {
+			std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+			child_1->parent = _node;
+			child_2->parent = _node;
+			_node->children.push_back(child_1);
+			_node->children.push_back(child_2);
+			if (_node->next.size() < 1) { 
+				child_1->unexpandable = true; 
+				child_2->unexpandable = true; 
+			}
+
+			child_1->path.push_back('X');
+			child_2->path.push_back('Z');
+			for (int k = 0; k < std::abs((int)_node->just_struct_tsd[i] - 4); k++) {
+				if ((int)_node->just_struct_tsd[i] - 3 > 0) {
+					child_1->path.push_back('R');
+					child_2->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+					child_2->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('X');
+			child_1->path.push_back('H');
+			child_2->path.push_back('S');
+			child_2->path.push_back('Z'); 
+			child_2->path.push_back('H');
+		} // TSD
+		for (int i = 0; i < (int)_node->just_struct_stsd.size(); i++) {
+			std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+			child_1->parent = _node;
+			child_2->parent = _node;
+			child_3->parent = _node;
+			child_4->parent = _node;
+			_node->children.push_back(child_1);
+			_node->children.push_back(child_2);
+			_node->children.push_back(child_3);
+			_node->children.push_back(child_4);
+			if (_node->next.size() < 1) { 
+				child_1->unexpandable = true; 
+				child_2->unexpandable = true; 
+				child_3->unexpandable = true; 
+				child_4->unexpandable = true; 
+			}
+
+			// child 1: tuck left, rotate right twice
+			for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+				if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('L');
+			child_1->path.push_back('X');
+			child_1->path.push_back('X');
+			child_1->path.push_back('H');
+
+			// child 2: tuck right, rotate left twice
+			for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+				if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('R');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('H');
+
+			// child 3: rotate left, rotate right twice
+			child_3->path.push_back('Z');
+			for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+				if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('X');
+			child_1->path.push_back('X');
+			child_1->path.push_back('H');
+
+			// child 4: rotate right, rotate left twice
+			child_4->path.push_back('X');
+			for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+				if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('H');
+
+		} // STSD
+		for (int i = 0; i < (int)_node->just_struct_tsttsd.size(); i++) {
+			std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+			std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+			child_1->parent = _node;
+			child_2->parent = _node;
+			child_3->parent = _node;
+			child_4->parent = _node;
+			_node->children.push_back(child_1);
+			_node->children.push_back(child_2);
+			_node->children.push_back(child_3);
+			_node->children.push_back(child_4);
+			if (_node->next.size() < 1) {
+				child_1->unexpandable = true; 
+				child_2->unexpandable = true; 
+				child_3->unexpandable = true; 
+				child_4->unexpandable = true;
+			}
+
+			// child 1: tuck left, rotate right twice
+			for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+				if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('L');
+			child_1->path.push_back('X');
+			child_1->path.push_back('X');
+			child_1->path.push_back('H');
+
+			// child 2: tuck right, rotate left twice
+			for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+				if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('R');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('H');
+
+			// child 3: rotate left, rotate right twice
+			child_3->path.push_back('Z');
+			for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+				if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('X');
+			child_1->path.push_back('X');
+			child_1->path.push_back('H');
+
+			// child 4: rotate right, rotate left twice
+			child_4->path.push_back('X');
+			for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+				if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+					child_1->path.push_back('R');
+				}
+				else {
+					child_1->path.push_back('L');
+				}
+			}
+			child_1->path.push_back('S');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('Z');
+			child_1->path.push_back('H');
+
+		} // TSDTST
+	}
+
+	// check hold piece
+	if (_node->hold == ' ') { // if there is no hold
+		if (_node->next.size() > 0) {
+			for (int i = 0; i < (int)this->path[_node->next[0]].size(); i++) {
+				std::shared_ptr<Node> child = std::make_shared<Node>();
+				child->parent = _node;
+				_node->children.push_back(child);
+				if (_node->next.size() < 2) {
+					child->unexpandable = true;
+				}
+				child->path = this->path[_node->next[0]][i];
+				child->path.insert(child->path.begin(), 'C');
+			}
+			if (_node->next[0] == 'T') { // check for tspin
+				for (int i = 0; i < (int)_node->just_struct_tsd.size(); i++) {
+					std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+					child_1->parent = _node;
+					child_2->parent = _node;
+					_node->children.push_back(child_1);
+					_node->children.push_back(child_2);
+					if (_node->next.size() < 2) {
+						child_1->unexpandable = true;
+						child_2->unexpandable = true;
+					}
+
+					child_1->path.push_back('C');
+					child_2->path.push_back('C');
+
+					child_1->path.push_back('X');
+					child_2->path.push_back('Z');
+					for (int k = 0; k < std::abs((int)_node->just_struct_tsd[i] - 4); k++) {
+						if ((int)_node->just_struct_tsd[i] - 3 > 0) {
+							child_1->path.push_back('R');
+							child_2->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+							child_2->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('X');
+					child_1->path.push_back('H');
+					child_2->path.push_back('S');
+					child_2->path.push_back('Z');
+					child_2->path.push_back('H');
+				} // TSD
+				for (int i = 0; i < (int)_node->just_struct_stsd.size(); i++) {
+					std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+					child_1->parent = _node;
+					child_2->parent = _node;
+					child_3->parent = _node;
+					child_4->parent = _node;
+					_node->children.push_back(child_1);
+					_node->children.push_back(child_2);
+					_node->children.push_back(child_3);
+					_node->children.push_back(child_4);
+					if (_node->next.size() < 2) {
+						child_1->unexpandable = true; child_2->unexpandable = true; child_3->unexpandable = true; child_4->unexpandable = true;
+					}
+
+					child_1->path.push_back('C');
+					child_2->path.push_back('C');
+					child_3->path.push_back('C');
+					child_4->path.push_back('C');
+
+					// child 1: tuck left, rotate right twice
+					for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+						if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('L');
+					child_1->path.push_back('X');
+					child_1->path.push_back('X');
+					child_1->path.push_back('H');
+
+					// child 2: tuck right, rotate left twice
+					for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+						if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('R');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('H');
+
+					// child 3: rotate left, rotate right twice
+					child_3->path.push_back('Z');
+					for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+						if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('X');
+					child_1->path.push_back('X');
+					child_1->path.push_back('H');
+
+					// child 4: rotate right, rotate left twice
+					child_4->path.push_back('X');
+					for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+						if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('H');
+
+				} // STSD
+				for (int i = 0; i < (int)_node->just_struct_tsttsd.size(); i++) {
+					std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+					std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+					child_1->parent = _node;
+					child_2->parent = _node;
+					child_3->parent = _node;
+					child_4->parent = _node;
+					_node->children.push_back(child_1);
+					_node->children.push_back(child_2);
+					_node->children.push_back(child_3);
+					_node->children.push_back(child_4);
+					if (_node->next.size() < 2) {
+						child_1->unexpandable = true; child_2->unexpandable = true; child_3->unexpandable = true; child_4->unexpandable = true;
+					}
+
+					child_1->path.push_back('C');
+					child_2->path.push_back('C');
+					child_3->path.push_back('C');
+					child_4->path.push_back('C');
+
+					// child 1: tuck left, rotate right twice
+					for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+						if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('L');
+					child_1->path.push_back('X');
+					child_1->path.push_back('X');
+					child_1->path.push_back('H');
+
+					// child 2: tuck right, rotate left twice
+					for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+						if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('R');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('H');
+
+					// child 3: rotate left, rotate right twice
+					child_3->path.push_back('Z');
+					for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+						if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('X');
+					child_1->path.push_back('X');
+					child_1->path.push_back('H');
+
+					// child 4: rotate right, rotate left twice
+					child_4->path.push_back('X');
+					for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+						if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+							child_1->path.push_back('R');
+						}
+						else {
+							child_1->path.push_back('L');
+						}
+					}
+					child_1->path.push_back('S');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('Z');
+					child_1->path.push_back('H');
+
+				} // TSDTST
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < (int)this->path[_node->hold].size(); i++) {
+			std::shared_ptr<Node> child = std::make_shared<Node>();
+			child->parent = _node;
+			_node->children.push_back(child);
+			if (_node->next.size() < 1) {
+				child->unexpandable = true;
+			}
+			child->hold = _node->current;
+			child->path = this->path[_node->hold][i];
+			child->path.insert(child->path.begin(), 'C');
+		}
+		if (_node->hold == 'T') { // check for tspin
+			for (int i = 0; i < (int)_node->just_struct_tsd.size(); i++) {
+				std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+				child_1->parent = _node;
+				child_2->parent = _node;
+				_node->children.push_back(child_1);
+				_node->children.push_back(child_2);
+				if (_node->next.size() < 1) {
+					child_1->unexpandable = true;
+					child_2->unexpandable = true;
+				}
+
+				child_1->path.push_back('C');
+				child_2->path.push_back('C');
+
+				child_1->path.push_back('X');
+				child_2->path.push_back('Z');
+				for (int k = 0; k < std::abs((int)_node->just_struct_tsd[i] - 4); k++) {
+					if ((int)_node->just_struct_tsd[i] - 3 > 0) {
+						child_1->path.push_back('R');
+						child_2->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+						child_2->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('X');
+				child_1->path.push_back('H');
+				child_2->path.push_back('S');
+				child_2->path.push_back('Z');
+				child_2->path.push_back('H');
+			} // TSD
+			for (int i = 0; i < (int)_node->just_struct_stsd.size(); i++) {
+				std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+				child_1->parent = _node;
+				child_2->parent = _node;
+				child_3->parent = _node;
+				child_4->parent = _node;
+				_node->children.push_back(child_1);
+				_node->children.push_back(child_2);
+				_node->children.push_back(child_3);
+				_node->children.push_back(child_4);
+				if (_node->next.size() < 1) {
+					child_1->unexpandable = true; child_2->unexpandable = true; child_3->unexpandable = true; child_4->unexpandable = true;
+				}
+
+				child_1->path.push_back('C');
+				child_2->path.push_back('C');
+				child_3->path.push_back('C');
+				child_4->path.push_back('C');
+
+				// child 1: tuck left, rotate right twice
+				for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+					if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('L');
+				child_1->path.push_back('X');
+				child_1->path.push_back('X');
+				child_1->path.push_back('H');
+
+				// child 2: tuck right, rotate left twice
+				for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+					if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('R');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('H');
+
+				// child 3: rotate left, rotate right twice
+				child_3->path.push_back('Z');
+				for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] + 1 - 3); k++) {
+					if ((int)_node->just_struct_stsd[i] + 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('X');
+				child_1->path.push_back('X');
+				child_1->path.push_back('H');
+
+				// child 4: rotate right, rotate left twice
+				child_4->path.push_back('X');
+				for (int k = 0; k < std::abs((int)_node->just_struct_stsd[i] - 1 - 3); k++) {
+					if ((int)_node->just_struct_stsd[i] - 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('H');
+
+			} // STSD
+			for (int i = 0; i < (int)_node->just_struct_tsttsd.size(); i++) {
+				std::shared_ptr<Node> child_1 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_2 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_3 = std::make_shared<Node>();
+				std::shared_ptr<Node> child_4 = std::make_shared<Node>();
+				child_1->parent = _node;
+				child_2->parent = _node;
+				child_3->parent = _node;
+				child_4->parent = _node;
+				_node->children.push_back(child_1);
+				_node->children.push_back(child_2);
+				_node->children.push_back(child_3);
+				_node->children.push_back(child_4);
+				if (_node->next.size() < 1) {
+					child_1->unexpandable = true; child_2->unexpandable = true; child_3->unexpandable = true; child_4->unexpandable = true;
+				}
+
+				child_1->path.push_back('C');
+				child_2->path.push_back('C');
+				child_3->path.push_back('C');
+				child_4->path.push_back('C');
+
+				// child 1: tuck left, rotate right twice
+				for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+					if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('L');
+				child_1->path.push_back('X');
+				child_1->path.push_back('X');
+				child_1->path.push_back('H');
+
+				// child 2: tuck right, rotate left twice
+				for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+					if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('R');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('H');
+
+				// child 3: rotate left, rotate right twice
+				child_3->path.push_back('Z');
+				for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] + 1 - 3); k++) {
+					if ((int)_node->just_struct_tsttsd[i] + 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('X');
+				child_1->path.push_back('X');
+				child_1->path.push_back('H');
+
+				// child 4: rotate right, rotate left twice
+				child_4->path.push_back('X');
+				for (int k = 0; k < std::abs((int)_node->just_struct_tsttsd[i] - 1 - 3); k++) {
+					if ((int)_node->just_struct_tsttsd[i] - 1 - 3 > 0) {
+						child_1->path.push_back('R');
+					}
+					else {
+						child_1->path.push_back('L');
+					}
+				}
+				child_1->path.push_back('S');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('Z');
+				child_1->path.push_back('H');
+
+			} // TSDTST
+		}
+	}
+};

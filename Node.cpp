@@ -2,7 +2,9 @@
 
 AI::Node::Node()
 {
-	this->parent = nullptr;
+	//this->parent = nullptr;
+	this->children = std::vector<std::shared_ptr<Node>>();
+	this->board = std::array<std::array <int, 10>, 40>();
 }
 
 AI::Node::~Node()

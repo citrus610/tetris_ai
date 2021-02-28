@@ -4,11 +4,12 @@ AI::Evaluator::Evaluator()
 {
 }
 
-float AI::Evaluator::evaluate(Node* _node)
+float AI::Evaluator::evaluate(std::shared_ptr<Node> _node)
 {
 	float result = 0;
 
-	std::array<std::array<int, 10>, 40> node_board_data = AI::Bot_Board::decodeData(_node->board);
+	//std::array<std::array<int, 10>, 40> node_board_data = AI::Bot_Board::decodeData(_node->board);
+	std::array<std::array<int, 10>, 40> node_board_data = _node->board;
 
 	std::array<int, 10> node_column_height = AI::Evaluator::column_height(node_board_data);
 
@@ -52,18 +53,18 @@ float AI::Evaluator::evaluate(Node* _node)
 	result += node_block_above_hole[1] * this->weights.block_above_hole_s;
 
 	// structure
-	std::array<int, 3> node_structure = AI::Evaluator::structure(node_board_data, node_column_height);
+	std::array<std::string, 3> node_structure = AI::Evaluator::structure(node_board_data, node_column_height);
 	_node->just_struct_tsd = node_structure[0];
 	_node->just_struct_stsd = node_structure[1];
 	_node->just_struct_tsttsd = node_structure[2];
-	result += _node->just_struct_tsd * this->weights.structure[0];
-	result += _node->just_struct_stsd * this->weights.structure[1];
-	result += _node->just_struct_tsttsd * this->weights.structure[2];
+	result += _node->just_struct_tsd.length() * this->weights.structure[0];
+	result += _node->just_struct_stsd.length() * this->weights.structure[1];
+	result += _node->just_struct_tsttsd.length() * this->weights.structure[2];
 
 	// waste structure
 	// DEFINE WASTE STRUCTURE: if the number of structures is smaller than the previous generation's, but there isn't any t spins, then structures are wasted
 	if (!(_node->just_t_spin && _node->just_cleared > 0)) {
-		if ((_node->just_struct_tsd < _node->parent->just_struct_tsd) || (_node->just_struct_stsd < _node->parent->just_struct_stsd) || (_node->just_struct_tsttsd < _node->parent->just_struct_tsttsd))
+		if ((_node->just_struct_tsd < _node->parent.lock()->just_struct_tsd) || (_node->just_struct_stsd < _node->parent.lock()->just_struct_stsd) || (_node->just_struct_tsttsd < _node->parent.lock()->just_struct_tsttsd))
 			result += this->weights.waste_structure;
 	}
 
@@ -220,9 +221,9 @@ std::array<int, 2> AI::Evaluator::block_above_hole(std::array<std::array<int, 10
 	return result;
 }
 
-std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> board_data, std::array<int, 10> _column_height)
+std::array<std::string, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> board_data, std::array<int, 10> _column_height)
 {
-	std::array<int, 3> result = { 0, 0, 0 };
+	std::array<std::string, 3> result = { "", "", "" };
 
 	int max_height = 0;
 	for (int i = 0; i < 10; i++) {
@@ -240,13 +241,13 @@ std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> 
 				board_data[k + 1][i] == 0 && board_data[k + 1][i + 1] == 0 && board_data[k + 1][i + 2] == 0 &&
 				board_data[k + 2][i] > 0 && board_data[k + 2][i + 1] == 0 && board_data[k + 2][i + 2] > 0 &&
 				_column_height[i + 1] < 40 - k && _column_height[i + 2] < 40 - k) {
-				result[0]++;
+				result[0].push_back((char)i);
 			}
 			if (board_data[k][i] == 0 && board_data[k][i + 1] == 0 && board_data[k][i + 2] > 0 &&
 				board_data[k + 1][i] == 0 && board_data[k + 1][i + 1] == 0 && board_data[k + 1][i + 2] == 0 &&
 				board_data[k + 2][i] > 0 && board_data[k + 2][i + 1] == 0 && board_data[k + 2][i + 2] > 0 &&
 				_column_height[i] < 40 - k && _column_height[i + 1] < 40 - k) {
-				result[0]++;
+				result[0].push_back((char)i);
 			}
 		}
 	}
@@ -267,11 +268,11 @@ std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> 
 				board_data[k + 4][i] == 0 && board_data[k + 4][i + 1] == 0 && board_data[k + 4][i + 2] > 0 &&
 				_column_height[i + 1] < 40 - k && _column_height[i + 2] < 40 - k) {
 				if (k >= 35) {
-					result[1]++;
+					result[1].push_back((char)i);
 				}
 				else {
 					if (board_data[k + 5][i] > 0)
-						result[1]++;
+						result[1].push_back((char)i);
 				}
 			}
 			if (board_data[k][i] == 0 && board_data[k][i + 1] == 0 && board_data[k][i + 2] > 0 &&
@@ -281,11 +282,11 @@ std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> 
 				board_data[k + 4][i] > 0 && board_data[k + 4][i + 1] == 0 && board_data[k + 4][i + 2] == 0 &&
 				_column_height[i] < 40 - k && _column_height[i + 1] < 40 - k) {
 				if (k >= 35) {
-					result[1]++;
+					result[1].push_back((char)i);
 				}
 				else {
 					if (board_data[k + 5][i + 2] > 0)
-						result[1]++;
+						result[1].push_back((char)i);
 				}
 			}
 		}
@@ -307,7 +308,7 @@ std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> 
 				board_data[k + 4][i] == 0 && board_data[k + 4][i + 1] > 0 && board_data[k + 4][i + 2] > 0 &&
 				board_data[k + 5][i] > 0 && board_data[k + 5][i + 1] == 0 && board_data[k + 5][i + 2] > 0 &&
 				_column_height[i + 1] < 40 - k && _column_height[i + 2] < 40 - k) {
-				result[2]++;
+				result[2].push_back((char)i);
 			}
 			if (board_data[k][i] == 0 && board_data[k][i + 1] == 0 && board_data[k][i + 2] > 0 &&
 				board_data[k + 1][i] == 0 && board_data[k + 1][i + 1] == 0 && board_data[k + 1][i + 2] == 0 &&
@@ -316,7 +317,7 @@ std::array<int, 3> AI::Evaluator::structure(std::array<std::array<int, 10>, 40> 
 				board_data[k + 4][i] > 0 && board_data[k + 4][i + 1] > 0 && board_data[k + 4][i + 2] == 0 &&
 				board_data[k + 5][i] > 0 && board_data[k + 5][i + 1] == 0 && board_data[k + 5][i + 2] > 0 &&
 				_column_height[i] < 40 - k && _column_height[i + 1] < 40 - k) {
-				result[2]++;
+				result[2].push_back((char)i);
 			}
 		}
 	}
